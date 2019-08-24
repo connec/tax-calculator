@@ -5,7 +5,10 @@ use std::fmt;
 use std::num::ParseIntError;
 
 /// The maximum amount of GBP that can be represented.
-pub static MAX: Gbp = Gbp(std::u32::MAX);
+pub static MAX: Gbp = Gbp {
+    pounds: std::u32::MAX,
+    pence: 99,
+};
 
 /// Represents errors that can occur when parsing GBP.
 ///
@@ -13,43 +16,44 @@ pub static MAX: Gbp = Gbp(std::u32::MAX);
 /// case: the decimal value may be invalid (too long or short).
 #[derive(Debug)]
 pub enum ParseError {
-    InvalidFloat(ParseIntError),
+    InvalidInt(ParseIntError),
     InvalidDecimal,
 }
 
 impl From<ParseIntError> for ParseError {
     fn from(error: ParseIntError) -> Self {
-        ParseError::InvalidFloat(error)
+        ParseError::InvalidInt(error)
     }
 }
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            ParseError::InvalidFloat(error) => error.fmt(f),
+            ParseError::InvalidInt(error) => error.fmt(f),
             ParseError::InvalidDecimal => write!(f, "Invalid decimal for GBP value"),
         }
     }
 }
 
-/// Represents an amount of Great British Pounds, stored as whole pence.
+/// Represents an amount of Great British Pounds, stored as pounds and pence.
 ///
 /// This provides useful formatting and parsing methods and implements necssary arithemtic operators
 /// for convenience.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct Gbp(u32);
+pub struct Gbp {
+    pounds: u32,
+    pence: u8,
+}
 
 impl Gbp {
     /// Construct a `Gbp` from a number of pounds.
-    ///
-    /// This accounts for the fact that we store values as pence.
     ///
     /// ```
     /// # use tax_calculator::Gbp;
     /// let amount = Gbp::from_pounds(100);
     /// ```
     pub fn from_pounds(pounds: u32) -> Self {
-        Gbp(pounds * 100)
+        Gbp { pounds, pence: 0 }
     }
 }
 
@@ -64,13 +68,11 @@ impl fmt::Display for Gbp {
     /// );
     /// ```
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let pounds = self.0 / 100;
-        let pence = self.0 % 100;
         write!(
             f,
             "£{}.{:02}",
-            pounds.to_formatted_string(&Locale::en),
-            pence
+            self.pounds.to_formatted_string(&Locale::en),
+            self.pence
         )
     }
 }
@@ -113,10 +115,40 @@ impl std::str::FromStr for Gbp {
             .chars()
             .filter(|c| *c != ',')
             .collect::<String>()
-            .parse::<u32>()?
-            * 100;
-        let pence = pence.parse::<u32>()?;
-        Ok(Gbp(pounds + pence))
+            .parse::<u32>()?;
+        let pence = pence.parse::<u8>()?;
+        Ok(Gbp { pounds, pence })
+    }
+}
+
+impl std::ops::Add<&Gbp> for Gbp {
+    type Output = Self;
+
+    /// Add a GBP amount to this one.
+    ///
+    /// ```
+    /// # use tax_calculator::Gbp;
+    /// # fn main() {
+    /// #     try_main().unwrap();
+    /// # }
+    /// # fn try_main() -> Result<(), tax_calculator::gbp::ParseError> {
+    /// let balance = Gbp::from_pounds(1000);
+    /// let deposit: Gbp = "£437.83".parse()?;
+    /// let updated_balance = balance + &deposit;
+    /// assert_eq!(
+    ///     format!("{}", updated_balance),
+    ///     "£1,437.83"
+    /// );
+    /// #     Ok(())
+    /// # }
+    /// ```
+    fn add(self, rhs: &Gbp) -> Self {
+        let (pounds, pence) = if self.pence + rhs.pence > 100 {
+            (self.pounds + rhs.pounds + 1, self.pence + rhs.pence - 100)
+        } else {
+            (self.pounds + rhs.pounds, self.pence + rhs.pence)
+        };
+        Gbp { pounds, pence }
     }
 }
 
@@ -142,7 +174,12 @@ impl std::ops::Sub for Gbp {
     /// # }
     /// ```
     fn sub(self, rhs: Self) -> Self {
-        Gbp(self.0 - rhs.0)
+        let (pounds, pence) = if rhs.pence > self.pence {
+            (self.pounds - rhs.pounds - 1, 100 + self.pence - rhs.pence)
+        } else {
+            (self.pounds - rhs.pounds, self.pence - rhs.pence)
+        };
+        Gbp { pounds, pence }
     }
 }
 
@@ -166,7 +203,13 @@ impl std::ops::SubAssign<Gbp> for Gbp {
     /// # }
     /// ```
     fn sub_assign(&mut self, rhs: Gbp) {
-        self.0 -= rhs.0
+        if rhs.pence > self.pence {
+            self.pounds -= rhs.pounds + 1;
+            self.pence = 100 - self.pence - rhs.pence;
+        } else {
+            self.pounds -= rhs.pounds;
+            self.pence -= rhs.pence;
+        }
     }
 }
 
@@ -174,6 +217,9 @@ impl std::ops::Mul<f64> for Gbp {
     type Output = Gbp;
 
     /// Multiply a GBP amount by a float.
+    ///
+    /// **Note:** This will round fractional pence, and truncate pound values that exceed
+    /// `std::u32::MAX`.
     ///
     /// ```
     /// # use tax_calculator::Gbp;
@@ -190,8 +236,13 @@ impl std::ops::Mul<f64> for Gbp {
     /// #     Ok(())
     /// # }
     /// ```
-    fn mul(self, other: f64) -> Gbp {
-        Gbp((self.0 as f64 * other).round() as u32)
+    fn mul(self, factor: f64) -> Gbp {
+        let amount = ((self.pounds as f64 * 100.0 + self.pence as f64) * factor).round();
+        println!("{}.{} * {} = {}", self.pounds, self.pence, factor, amount);
+        Gbp {
+            pounds: (amount / 100.0) as u32,
+            pence: (amount % 100.0) as u8,
+        }
     }
 }
 
@@ -220,6 +271,6 @@ impl<'a> std::iter::Sum<&'a Gbp> for Gbp {
     where
         I: Iterator<Item = &'a Gbp>,
     {
-        Gbp(iter.map(|gbp| gbp.0).sum())
+        iter.fold(Gbp::from_pounds(0), |sum, item| sum + item)
     }
 }
