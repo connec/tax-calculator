@@ -27,7 +27,7 @@ lazy_static! {
       ("Starter rate", 2000, 0.19),
       ("Basic rate", 12150, 0.2),
       ("Intermediate rate", 31580, 0.21),
-      ("Higher rate", 150000, 0.4)
+      ("Higher rate", 150_000, 0.4)
     ]));
 
     m

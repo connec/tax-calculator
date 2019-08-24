@@ -202,6 +202,7 @@ impl std::ops::SubAssign<Gbp> for Gbp {
     /// #     Ok(())
     /// # }
     /// ```
+    #[allow(clippy::suspicious_op_assign_impl)]
     fn sub_assign(&mut self, rhs: Gbp) {
         if rhs.pence > self.pence {
             self.pounds -= rhs.pounds + 1;
@@ -236,8 +237,9 @@ impl std::ops::Mul<f64> for Gbp {
     /// #     Ok(())
     /// # }
     /// ```
+    #[allow(clippy::suspicious_arithmetic_impl)]
     fn mul(self, factor: f64) -> Gbp {
-        let amount = ((self.pounds as f64 * 100.0 + self.pence as f64) * factor).round();
+        let amount = ((f64::from(self.pounds) * 100.0 + f64::from(self.pence)) * factor).round();
         println!("{}.{} * {} = {}", self.pounds, self.pence, factor, amount);
         Gbp {
             pounds: (amount / 100.0) as u32,

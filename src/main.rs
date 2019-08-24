@@ -64,7 +64,7 @@ Total Tax Due: {}
     );
 }
 
-fn format_tax(tax: &Vec<(&tax::Band, Gbp, Gbp)>) -> String {
+fn format_tax(tax: &[(&tax::Band, Gbp, Gbp)]) -> String {
     let mut s = String::new();
     for (band, affected_income, tax) in tax {
         if affected_income == &Gbp::from_pounds(0) {
