@@ -59,16 +59,16 @@ impl std::ops::Sub for Gbp {
     }
 }
 
-impl std::ops::SubAssign<&Gbp> for Gbp {
-    fn sub_assign(&mut self, rhs: &Gbp) {
+impl std::ops::SubAssign<Gbp> for Gbp {
+    fn sub_assign(&mut self, rhs: Gbp) {
         self.0 -= rhs.0
     }
 }
 
-impl std::ops::Mul<&f64> for Gbp {
+impl std::ops::Mul<f64> for Gbp {
     type Output = Gbp;
 
-    fn mul(self, other: &f64) -> Gbp {
+    fn mul(self, other: f64) -> Gbp {
         Gbp((self.0 as f64 * other).round() as u32)
     }
 }
