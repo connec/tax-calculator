@@ -2,10 +2,6 @@
 
 A little CLI to calculate income tax.
 
-**Note:** This is a work-in-progress. Likely next steps:
-
-- Name bands and print them.
-
 [clap]: https://clap.rs/
 
 ## Setup
@@ -51,10 +47,17 @@ Positional arguments can be given to `cargo run` after a `--`, for example:
 ```
 $ cargo run -- 2018 43500
     ...
-
-
 Tax Year: 2018-2019
 Gross Salary: £43,500.00
+
+Personal Allowance: £11,850.00
+
+Taxable Income: £31,650.00
+
+Starter rate: £2,000.00 @ 0.19 = £380.00
+Basic rate: £10,149.00 @ 0.2 = £2,029.80
+Intermediate rate: £19,429.00 @ 0.21 = £4,080.09
+Higher rate: £72.00 @ 0.4 = £28.80
 
 Total Tax Due: £6,518.69
 ```

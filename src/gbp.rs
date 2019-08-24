@@ -20,7 +20,11 @@ impl Gbp {
 impl fmt::Display for Gbp {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let string = self.0.to_string();
-        let (pounds, pence) = string.split_at(string.len() - 2);
+        let (pounds, pence) = if string.len() > 2 {
+            string.split_at(string.len() - 2)
+        } else {
+            ("", string.as_str())
+        };
         let pounds = pounds
             .as_bytes()
             .rchunks(3)

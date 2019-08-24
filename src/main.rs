@@ -40,11 +40,33 @@ fn main() {
 Tax Year: {}-{}
 Gross Salary: {}
 
+Personal Allowance: {}
+
+Taxable Income: {}
+
+{}
 Total Tax Due: {}
 ",
         opt.year,
         opt.year + 1,
         opt.gross_income,
-        tax.iter().map(|(_, _, tax)| tax).sum::<Gbp>()
+        bands.tax_free_allowance(),
+        opt.gross_income - bands.tax_free_allowance(),
+        format_tax(&tax),
+        tax.iter().map(|(_, _, _, tax)| tax).sum::<Gbp>()
     );
+}
+
+fn format_tax(tax: &Vec<(&str, Gbp, f64, Gbp)>) -> String {
+    let mut s = String::new();
+    for (name, affected_income, rate, tax) in tax {
+        if affected_income == &Gbp::from_pounds(0) {
+            continue;
+        }
+        s.push_str(&format!(
+            "{}: {} @ {} = {}\n",
+            name, affected_income, rate, tax
+        ));
+    }
+    s
 }
