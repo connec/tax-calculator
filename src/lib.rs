@@ -1,4 +1,4 @@
-mod gbp;
+pub mod gbp;
 pub mod tax;
 
 use lazy_static::lazy_static;

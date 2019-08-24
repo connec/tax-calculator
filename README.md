@@ -38,14 +38,13 @@ ARGS:
 The CLI requires two positional arguments:
 
 1. A tax year, specified as the starting year (e.g. `2018` would represent the 2018-2019 tax year).
-   Tax bands are only defined for years 2018, 2017, 2016, and 2015.
-2. A gross income, specified as a plain unformatted number (e.g. `43500` would represent
-   £43,500.00).
+   Tax schedules are defined for years 2018, 2017, 2016, and 2015.
+2. A gross income.
 
 Positional arguments can be given to `cargo run` after a `--`, for example:
 
 ```
-$ cargo run -- 2018 43500
+$ cargo run -- 2018 £43,500
     ...
 Tax Year: 2018-2019
 Gross Salary: £43,500.00
