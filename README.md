@@ -5,7 +5,6 @@ A little CLI to calculate income tax.
 **Note:** This is a work-in-progress. Likely next steps:
 
 - Better serialization and deserialization of currency (e.g. formatting and argument parsing).
-- Use a CLI framework (e.g. [clap]) to get better usage etc.
 - Name bands and print them.
 
 [clap]: https://clap.rs/
@@ -20,7 +19,19 @@ Once rust is installed you can run the CLI with [Cargo]:
 ```
 $ cargo run
    ...
-Missing required positional argument: year
+tax-calculator 0.1.0
+Chris Connelly <chris@connec.co.uk>
+
+USAGE:
+    tax-calculator <year> <gross_income>
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+ARGS:
+    <year>
+    <gross_income>
 ```
 
 [Rust]: https://www.rust-lang.org/
