@@ -1,6 +1,6 @@
 use structopt::{clap, StructOpt};
 
-use tax_calculator::{BANDS, TaxBands};
+use tax_calculator::{Gbp, TaxBands, BANDS};
 
 #[derive(Debug, StructOpt)]
 #[structopt(raw(setting = "structopt::clap::AppSettings::ArgRequiredElseHelp"))]
@@ -9,7 +9,7 @@ struct Opt {
     year: u32,
 
     #[structopt(help = "Gross income to calculate tax for")]
-    gross_income: u32,
+    gross_income: Gbp,
 }
 
 impl Opt {
@@ -22,8 +22,7 @@ impl Opt {
                 .join(", ");
             let description = &format!(
                 "Tax bands are not defined for year: {}. Available years: {}.",
-                self.year,
-                available_years
+                self.year, available_years
             );
             clap::Error::with_description(description, clap::ErrorKind::InvalidValue)
         })
@@ -46,6 +45,6 @@ Total Tax Due: {}
         opt.year,
         opt.year + 1,
         opt.gross_income,
-        tax.iter().map(|(_, _, tax)| tax).sum::<f64>()
+        tax.iter().map(|(_, _, tax)| tax).sum::<Gbp>()
     );
 }

@@ -4,7 +4,6 @@ A little CLI to calculate income tax.
 
 **Note:** This is a work-in-progress. Likely next steps:
 
-- Better serialization and deserialization of currency (e.g. formatting and argument parsing).
 - Name bands and print them.
 
 [clap]: https://clap.rs/
@@ -53,8 +52,9 @@ Positional arguments can be given to `cargo run` after a `--`, for example:
 $ cargo run -- 2018 43500
     ...
 
-Tax Year: 2018-2019
-Gross Salary: 43500
 
-Total Tax Due: 6518.69
+Tax Year: 2018-2019
+Gross Salary: £43,500.00
+
+Total Tax Due: £6,518.69
 ```
