@@ -1,4 +1,11 @@
 //! Defines structs and methods for working with tax.
+//!
+//! In particular a [`tax::Schedule`] struct represents the income tax schedule for a particular
+//! year including the tax free allowance and income tax bands. The [`Schedule::apply`] method can
+//! be used to calculate tax details.
+//!
+//! [`tax::Schedule`]: struct.Schedule.html
+//! [`Schedule::apply`]: struct.Schedule.html#method.apply
 
 use std::cmp::min;
 
@@ -7,7 +14,9 @@ use crate::gbp::{self, Gbp};
 /// Struct representing a tax band.
 ///
 /// A tax band has a name, an amount of affected income, and a rate. When applied to an amount of
-/// income, only the income up to the affected amount will have tax computed.
+/// income, only the income up to the affected amount will have tax computed (see [`apply`]).
+///
+/// [`apply`]: #method.apply
 ///
 /// ```
 /// use tax_calculator::{tax, Gbp};
@@ -110,12 +119,13 @@ impl Band {
 
 /// Struct representing a year's tax schedule.
 ///
-/// Tax schedules are represented as a `Vec` of 'affected income' and 'applicable tax rate'. This
-/// format makes calculating tax very simple (see [`apply`]). This is slightly naive compared to
-/// 'real life', since the tax free allowance is gradually reduced for incomes above £100,000. This
-/// has been ignored as it is not required for this project.
+/// Tax schedules are represented as a set tax free allowance and a `Vec` of [`Band`]s. This format
+/// format makes calculating tax very simple (see [`apply`]), however it is slightly naive compared
+/// to 'real life', since the tax free allowance is gradually reduced for incomes above a threshold.
+/// This has been ignored as it is not required for this project.
 ///
 /// [`apply`]: #method.apply
+/// [`Band`]: struct.Band.html
 ///
 /// ```
 /// use tax_calculator::{tax, Gbp};
@@ -202,25 +212,25 @@ impl Schedule {
     /// The result is a `Vec` with an entry for each band along with the amount of income taxed at
     /// that rate and the amount of tax due.
     /// ```
-    /// # fn main() {
-    /// #     try_main().unwrap();
-    /// # }
-    /// # fn try_main() -> Result<(), tax_calculator::gbp::ParseError> {
     /// use tax_calculator::{tax, Gbp, SCHEDULES};
     /// let tax_year_2018 = SCHEDULES.get(&2018).unwrap();
     /// let income = Gbp::from_pounds(43500);
+    /// let tax = tax_year_2018.apply(income);
+    ///
     /// assert_eq!(
-    ///     tax_year_2018.apply(income).iter().map(|(b, a, t)| (b.name(), a, t)).collect::<Vec<_>>(),
+    ///     tax.iter().map(|(b, a, t)| (b.name(), a, t)).collect::<Vec<_>>(),
     ///     vec![
-    ///         ("Starter rate", &"£2000".parse()?, &"£380".parse()?),
-    ///         ("Basic rate", &"£10,149".parse()?, &"2,029.80".parse()?),
-    ///         ("Intermediate rate", &"£19,429".parse()?, &"£4,080.09".parse()?),
-    ///         ("Higher rate", &"£72".parse()?, &"£28.80".parse()?),
-    ///         ("Top rate", &"0".parse()?, &"0".parse()?),
+    ///         ("Starter rate", &Gbp::new(2000, 0), &Gbp::new(380, 0)),
+    ///         ("Basic rate", &Gbp::new(10149, 0), &Gbp::new(2029, 80)),
+    ///         ("Intermediate rate", &Gbp::new(19429, 0), &Gbp::new(4080, 09)),
+    ///         ("Higher rate", &Gbp::new(72, 0), &Gbp::new(28, 80)),
+    ///         ("Top rate", &Gbp::new(0, 0), &Gbp::new(0, 0)),
     ///     ],
     /// );
-    /// #     Ok(())
-    /// # }
+    /// assert_eq!(
+    ///     tax.iter().map(|(_, _, t)| t).sum::<Gbp>(),
+    ///     Gbp::new(6518, 69),
+    /// );
     /// ```
     pub fn apply<'a>(&'a self, gross_income: Gbp) -> Vec<(&'a Band, Gbp, Gbp)> {
         let mut taxable_income = gross_income - self.tax_free_allowance;

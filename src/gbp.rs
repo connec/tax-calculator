@@ -1,4 +1,8 @@
-//! Defines a struct that wraps a GBP amount.
+//! Contains a minimal implementation of a data type for GBP amounts.
+//!
+//! See the documentation for [`Gbp`] for more usage details.
+//!
+//! [`Gbp`]: struct.Gbp.html
 
 use num_format::{Locale, ToFormattedString};
 use std::fmt;
@@ -37,8 +41,12 @@ impl fmt::Display for ParseError {
 
 /// Represents an amount of Great British Pounds, stored as pounds and pence.
 ///
-/// This provides useful formatting and parsing methods and implements necssary arithemtic operators
-/// for convenience.
+/// This provides useful `impl`s for idiomatic usage in [formatting], [parsing], and [arithmetic]
+/// \(though only the operators required for the task have been implemented).
+///
+/// [formatting]: #impl-Display
+/// [parsing]: #impl-FromStr
+/// [arithmetic]: #impl-Sub<Gbp>
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Gbp {
     pounds: u32,
@@ -46,6 +54,23 @@ pub struct Gbp {
 }
 
 impl Gbp {
+    /// Construct a `Gbp` from pounds and pence.
+    ///
+    /// # Panics
+    ///
+    /// This will panic if `pence` is over 99 and adding the overflow to `pounds` causes an
+    /// overflow.
+    ///
+    /// ```
+    /// # use tax_calculator::Gbp;
+    /// let amount = Gbp::new(1, 99);
+    pub fn new(pounds: u32, pence: u8) -> Self {
+        Gbp {
+            pounds: pounds + u32::from(pence / 100),
+            pence: pence % 100,
+        }
+    }
+
     /// Construct a `Gbp` from a number of pounds.
     ///
     /// ```
@@ -62,9 +87,10 @@ impl fmt::Display for Gbp {
     ///
     /// ```
     /// # use tax_calculator::Gbp;
+    /// let amount = Gbp::new(1_234_567, 89);
     /// assert_eq!(
-    ///     format!("{}", Gbp::from_pounds(100)),
-    ///     "£100.00"
+    ///     format!("{}", amount),
+    ///     "£1,234,567.89"
     /// );
     /// ```
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -92,10 +118,7 @@ impl std::str::FromStr for Gbp {
     /// # }
     /// # fn try_main() -> Result<(), tax_calculator::gbp::ParseError> {
     /// let amount: Gbp = "£1,234,567.89".parse()?;
-    /// assert_eq!(
-    ///     format!("{}", amount),
-    ///     "£1,234,567.89"
-    /// );
+    /// assert_eq!(amount, Gbp::new(1_234_567, 89));
     /// #     Ok(())
     /// # }
     /// ```
@@ -128,19 +151,10 @@ impl std::ops::Add<&Gbp> for Gbp {
     ///
     /// ```
     /// # use tax_calculator::Gbp;
-    /// # fn main() {
-    /// #     try_main().unwrap();
-    /// # }
-    /// # fn try_main() -> Result<(), tax_calculator::gbp::ParseError> {
-    /// let balance = Gbp::from_pounds(1000);
-    /// let deposit: Gbp = "£437.83".parse()?;
+    /// let balance = Gbp::new(735, 62);
+    /// let deposit = Gbp::new(437, 83);
     /// let updated_balance = balance + &deposit;
-    /// assert_eq!(
-    ///     format!("{}", updated_balance),
-    ///     "£1,437.83"
-    /// );
-    /// #     Ok(())
-    /// # }
+    /// assert_eq!(updated_balance, Gbp::new(1173, 45));
     /// ```
     fn add(self, rhs: &Gbp) -> Self {
         let (pounds, pence) = if self.pence + rhs.pence > 100 {
@@ -159,19 +173,10 @@ impl std::ops::Sub for Gbp {
     ///
     /// ```
     /// # use tax_calculator::Gbp;
-    /// # fn main() {
-    /// #     try_main().unwrap();
-    /// # }
-    /// # fn try_main() -> Result<(), tax_calculator::gbp::ParseError> {
-    /// let balance = Gbp::from_pounds(1000);
-    /// let cost: Gbp = "£437.83".parse()?;
+    /// let balance = Gbp::new(1000, 0);
+    /// let cost = Gbp::new(437, 83);
     /// let remaining = balance - cost;
-    /// assert_eq!(
-    ///     format!("{}", remaining),
-    ///     "£562.17"
-    /// );
-    /// #     Ok(())
-    /// # }
+    /// assert_eq!(remaining, Gbp::new(562, 17));
     /// ```
     fn sub(self, rhs: Self) -> Self {
         let (pounds, pence) = if rhs.pence > self.pence {
@@ -188,19 +193,10 @@ impl std::ops::SubAssign<Gbp> for Gbp {
     ///
     /// ```
     /// # use tax_calculator::Gbp;
-    /// # fn main() {
-    /// #     try_main().unwrap();
-    /// # }
-    /// # fn try_main() -> Result<(), tax_calculator::gbp::ParseError> {
-    /// let mut balance = Gbp::from_pounds(1000);
-    /// let cost: Gbp = "£437.83".parse()?;
+    /// let mut balance = Gbp::new(1000, 0);
+    /// let cost = Gbp::new(437, 83);
     /// balance -= cost;
-    /// assert_eq!(
-    ///     format!("{}", balance),
-    ///     "£562.17"
-    /// );
-    /// #     Ok(())
-    /// # }
+    /// assert_eq!(balance, Gbp::new(562, 17));
     /// ```
     #[allow(clippy::suspicious_op_assign_impl)]
     fn sub_assign(&mut self, rhs: Gbp) {
@@ -224,18 +220,9 @@ impl std::ops::Mul<f64> for Gbp {
     ///
     /// ```
     /// # use tax_calculator::Gbp;
-    /// # fn main() {
-    /// #     try_main().unwrap();
-    /// # }
-    /// # fn try_main() -> Result<(), tax_calculator::gbp::ParseError> {
-    /// let cost: Gbp = "£0.99".parse()?;
+    /// let cost = Gbp::new(0, 99);
     /// let total = cost * 5.0;
-    /// assert_eq!(
-    ///     format!("{}", total),
-    ///     "£4.95"
-    /// );
-    /// #     Ok(())
-    /// # }
+    /// assert_eq!(total, Gbp::new(4, 95));
     /// ```
     #[allow(clippy::suspicious_arithmetic_impl)]
     fn mul(self, factor: f64) -> Gbp {
@@ -253,21 +240,12 @@ impl<'a> std::iter::Sum<&'a Gbp> for Gbp {
     ///
     /// ```
     /// # use tax_calculator::Gbp;
-    /// # fn main() {
-    /// #     try_main().unwrap();
-    /// # }
-    /// # fn try_main() -> Result<(), tax_calculator::gbp::ParseError> {
     /// let amounts = vec![
-    ///     Gbp::from_pounds(5),
-    ///     "0.63".parse()?,
+    ///     Gbp::new(5, 0),
+    ///     Gbp::new(0, 63),
     /// ];
     /// let total: Gbp = amounts.iter().sum();
-    /// assert_eq!(
-    ///     format!("{}", total),
-    ///     "£5.63"
-    /// );
-    /// #     Ok(())
-    /// # }
+    /// assert_eq!(total, Gbp::new(5, 63));
     /// ```
     fn sum<I>(iter: I) -> Self
     where

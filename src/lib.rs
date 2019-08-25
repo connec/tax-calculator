@@ -1,3 +1,6 @@
+//! This crate includes an API to support calculating income tax, along with a CLI that allows
+//! performing income tax calculations for a static set of tax schedules.
+
 pub mod gbp;
 pub mod tax;
 
@@ -8,7 +11,7 @@ use std::collections::BTreeMap;
 pub use gbp::Gbp;
 
 lazy_static! {
-  /// Tax bands for each covered year.
+  /// Statically defined tax bands for each covered year.
   ///
   /// These are stored in a `BTreeMap` for convenient, ordered iteration of available years.
   pub static ref SCHEDULES: BTreeMap<u32, tax::Schedule> = {
