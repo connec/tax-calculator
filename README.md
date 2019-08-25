@@ -60,3 +60,28 @@ Higher rate: £72.00 @ 0.4 = £28.80
 
 Total Tax Due: £6,518.69
 ```
+
+## Implementation
+
+The CLI entrypoint is implemented in [`src/main.rs`] along with most of the argument handling and
+output formatting.
+
+[`src/lib.rs`] defines the public API of the crate and sets up the tax schedules for the years given
+in the task.
+
+[`src/gbp.rs`] contains a minimal implementation of a data type for GBP amounts with `impl`s for
+idiomatic usage in [formatting], [parsing], and [arithmetic] \(though only the operators required
+for the task have been implemented).
+
+[`src/tax.rs`] defines structs and methods for working with tax, in particular a [`tax::Schedule`]
+struct representing the income tax schedule for a particular year including the tax free allowance
+and income tax bands.
+
+[`src/main.rs`]: src/main.rs
+[`src/lib.rs`]: src/lib.rs
+[`src/gbp.rs`]: src/gbp.rs
+[formatting]: src/gbp.rs#L60
+[parsing]: src/gbp.rs#L80
+[arithmetic]: src/gbp.rs#L124
+[`src/tax.rs`]: src/tax.rs
+[`tax::Schedule`]: src/tax.rs#L137
