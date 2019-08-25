@@ -77,6 +77,12 @@ for the task have been implemented).
 struct representing the income tax schedule for a particular year including the tax free allowance
 and income tax bands.
 
+You can view the project's documentation with:
+
+```
+$ cargo doc --no-deps --open
+```
+
 [`src/main.rs`]: src/main.rs
 [`src/lib.rs`]: src/lib.rs
 [`src/gbp.rs`]: src/gbp.rs
