@@ -23,6 +23,7 @@ impl Opt {
         let available_years = SCHEDULES
             .keys()
             .map(|y| y.to_string())
+            .rev()
             .collect::<Vec<_>>()
             .join(", ");
         let description = &format!(
