@@ -91,3 +91,13 @@ $ cargo doc --no-deps --open
 [arithmetic]: src/gbp.rs#L124
 [`src/tax.rs`]: src/tax.rs
 [`tax::Schedule`]: src/tax.rs#L137
+
+## Tests
+
+The project has no tests as such, however several of the documentation examples contain assertions
+to demonstrate return values etc. These assertions are then executed when `cargo` tests the
+documentation. These can be run using:
+
+```
+$ cargo test
+```
