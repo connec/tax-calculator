@@ -156,12 +156,14 @@ impl Schedule {
     /// This is a convenient way of constructing a `Schedule` from the format they are more
     /// commonly described in - a list of thresholds and tax rates.
     ///
+    /// ```
     /// # use tax_calculator::tax;
     /// let tax_year_2017 = tax::Schedule::new(
     ///     11500,
     ///     ("Higher rate", 0.4),
     ///     vec![("Basic rate", 31500, 0.2)]
     /// );
+    /// ```
     pub fn new(
         tax_free_allowance: u32,
         top_rate: (&str, f64),
